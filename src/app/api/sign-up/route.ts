@@ -51,13 +51,7 @@ export async function POST(request:Request) {
         // we will send him/her the OTP in his/her mail so we will store all the
         //data in the database
         const hashedPassword = await bcrypt.hash(password, 10);
-        existingUserByEmail.username = username;//hitesh sir missed this
-        //the problem with the above line not being there is like:
-        //the logic we are following in case there was an user who signed up but did  
-        //not verify and now he signs up again but with different username,
-        //since he did not verify last time so we update the details but if we do not 
-        //update the username, then the verify page won't work, since it checks
-        //the username and not the email, that would be a problem
+        existingUserByEmail.username = username;
         existingUserByEmail.password = hashedPassword; //storing the hashed password
         existingUserByEmail.verifyCode = verifyCode; //storing the OTP
         existingUserByEmail.verifyCodeExpiry = new Date(Date.now() + 3600000);
