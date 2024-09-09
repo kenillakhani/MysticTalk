@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, Key } from 'react'; // Add import statement for React
+import React, { useState, useEffect, useCallback, Key } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios, { AxiosError } from 'axios';
@@ -18,10 +18,8 @@ import { Loader2, RefreshCcw } from 'lucide-react';
 
 function UserDashboard() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [suggestedMessages, setSuggestedMessages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSwitchLoading, setIsSwitchLoading] = useState(false);
-  const [isSuggestLoading, setIsSuggestLoading] = useState(false);
 
   const { toast } = useToast();
   const { data: session } = useSession();
@@ -33,26 +31,39 @@ function UserDashboard() {
   const { register, watch, setValue } = form;
   const acceptMessages = watch('acceptMessages');
 
-  // Function to fetch messages from the server
-  const fetchMessages = useCallback(async (refresh: boolean = false) => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get<ApiResponse>('/api/get-messages');
-      setMessages(response.data.messages || []);
-      if (refresh) {
-        toast({
-          title: 'Refreshed Messages',
-          description: 'Showing latest messages',
-        });
-      }
-    } catch (error) {
-      handleError(error, 'Failed to fetch messages');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
+  const handleError = useCallback(
+    (error: unknown, defaultMessage: string) => {
+      const axiosError = error as AxiosError<ApiResponse>;
+      toast({
+        title: 'Error',
+        description: axiosError.response?.data.message || defaultMessage,
+        variant: 'destructive',
+      });
+    },
+    [toast]
+  );
 
-  // Function to fetch whether messages are being accepted
+  const fetchMessages = useCallback(
+    async (refresh: boolean = false) => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get<ApiResponse>('/api/get-messages');
+        setMessages(response.data.messages || []);
+        if (refresh) {
+          toast({
+            title: 'Refreshed Messages',
+            description: 'Showing latest messages',
+          });
+        }
+      } catch (error) {
+        handleError(error, 'Failed to fetch messages');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [toast, handleError]
+  );
+
   const fetchAcceptMessages = useCallback(async () => {
     setIsSwitchLoading(true);
     try {
@@ -63,16 +74,14 @@ function UserDashboard() {
     } finally {
       setIsSwitchLoading(false);
     }
-  }, [setValue, toast]);
+  }, [setValue, handleError]);
 
-  // Fetch initial state from the server
   useEffect(() => {
     if (!session || !session.user) return;
     fetchMessages();
     fetchAcceptMessages();
   }, [session, fetchAcceptMessages, fetchMessages]);
 
-  // Function to handle the switch change for accepting messages
   const handleSwitchChange = async () => {
     try {
       const response = await axios.post<ApiResponse>('/api/accept-messages', {
@@ -86,16 +95,6 @@ function UserDashboard() {
     } catch (error) {
       handleError(error, 'Failed to update message settings');
     }
-  };
-
-  // Function to handle errors and display toast messages
-  const handleError = (error: unknown, defaultMessage: string) => {
-    const axiosError = error as AxiosError<ApiResponse>;
-    toast({
-      title: 'Error',
-      description: axiosError.response?.data.message || defaultMessage,
-      variant: 'destructive',
-    });
   };
 
   if (!session || !session.user) {
@@ -117,7 +116,7 @@ function UserDashboard() {
   return (
     <div className="my-8 mx-4 md:mx-8 lg:mx-auto p-6 bg-white rounded w-full max-w-6xl">
       <h1 className="text-4xl font-bold mb-4">User Dashboard</h1>
-  
+
       {/* Section for copying unique link */}
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">Copy Your Unique Link</h2>
@@ -131,7 +130,7 @@ function UserDashboard() {
           <Button onClick={copyToClipboard}>Copy</Button>
         </div>
       </div>
-  
+
       {/* Switch for accepting messages */}
       <div className="mb-4 flex items-center">
         <Switch
@@ -145,7 +144,7 @@ function UserDashboard() {
         </span>
       </div>
       <Separator />
-  
+
       {/* Refresh messages button */}
       <Button
         className="mt-4"
@@ -159,7 +158,7 @@ function UserDashboard() {
           <RefreshCcw className="h-4 w-4" />
         )}
       </Button>
-  
+
       {/* Display user messages */}
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
         {messages.length > 0 ? (
@@ -177,8 +176,7 @@ function UserDashboard() {
         )}
       </div>
     </div>
-  );  
-  
+  );
 }
 
 export default UserDashboard;
