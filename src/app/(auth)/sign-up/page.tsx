@@ -24,14 +24,19 @@ import { ApiResponse } from '@/types/ApiResponse';
 import { signUpSchema } from '@/schemas/signUpSchema';
 
 export default function SignUpForm() {
+  const router = useRouter();
+  const { toast } = useToast();
   const [username, setUsername] = useState('');
   const [usernameMessage, setUsernameMessage] = useState('');
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const debounced = useDebounceCallback((value: string) => setUsername(value), 500);
 
-  const router = useRouter();
-  const { toast } = useToast();
+  // Ensures that the component renders only on the client
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const form = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
@@ -42,6 +47,7 @@ export default function SignUpForm() {
     },
   });
 
+  // Check for username availability on the client side
   useEffect(() => {
     if (!username) return;
 
@@ -59,6 +65,7 @@ export default function SignUpForm() {
 
     checkUsername();
   }, [username]);
+
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
     setIsSubmitting(true);
     try {
@@ -71,26 +78,27 @@ export default function SignUpForm() {
           },
         }
       );
-  
+
       toast({
         title: 'Success',
         description: response.data.message,
       });
-  
+
       router.replace(`/verify/${data.username}`);
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse>;
       console.error('Error during sign-up:', axiosError.message);
-  
+
       if (axiosError.response) {
         console.error('Response data:', axiosError.response.data);
         console.error('Response status:', axiosError.response.status);
       }
-  
+
       const errorMessage = axiosError.response?.data.message || 'There was a problem with your sign-up. Please try again.';
-  
+      const errorType = axiosError.response?.status === 400 ? 'Validation Error' : 'Sign Up Failed';
+
       toast({
-        title: 'Sign Up Failed',
+        title: errorType,
         description: errorMessage,
         variant: 'destructive',
       });
@@ -98,7 +106,9 @@ export default function SignUpForm() {
       setIsSubmitting(false);
     }
   };
-  
+
+  if (!isClient) return null; // Prevents server-side rendering
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-800">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
@@ -139,7 +149,7 @@ export default function SignUpForm() {
                 </FormItem>
               )}
             />
-            <FormField
+             <FormField
               name="email"
               control={form.control}
               render={({ field }) => (
@@ -164,15 +174,8 @@ export default function SignUpForm() {
               )}
             />
             
-            <Button type="submit" className='w-full' disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Please wait
-                </>
-              ) : (
-                'Sign Up'
-              )}
+            <Button className="w-full" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? <Loader2 className="animate-spin" /> : 'Sign Up'}
             </Button>
           </form>
         </Form>

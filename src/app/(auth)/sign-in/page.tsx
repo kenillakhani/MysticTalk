@@ -17,9 +17,16 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 import { signInSchema } from '@/schemas/signInSchema';
+import { useEffect, useState } from 'react';
 
 export default function SignInForm() {
   const router = useRouter();
+  const { toast } = useToast();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true); // Ensures that the component renders only on the client
+  }, []);
 
   const form = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
@@ -29,7 +36,6 @@ export default function SignInForm() {
     },
   });
 
-  const { toast } = useToast();
   const onSubmit = async (data: z.infer<typeof signInSchema>) => {
     const result = await signIn('credentials', {
       redirect: false,
@@ -57,6 +63,8 @@ export default function SignInForm() {
       router.replace('/dashboard');
     }
   };
+
+  if (!isClient) return null; // Prevents server-side rendering
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-800">
@@ -91,7 +99,9 @@ export default function SignInForm() {
                 </FormItem>
               )}
             />
-            <Button className='w-full' type="submit">Sign In</Button>
+            <Button className="w-full" type="submit">
+              Sign In
+            </Button>
           </form>
         </Form>
         <div className="text-center mt-4">
@@ -104,5 +114,6 @@ export default function SignInForm() {
         </div>
       </div>
     </div>
+    
   );
 }

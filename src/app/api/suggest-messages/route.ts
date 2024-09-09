@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI} from '@google/generative-ai';
-import { NextApiRequest } from 'next'; // Corrected typo
+import { NextResponse, NextRequest } from 'next/server';  // Use NextRequest instead of NextApiRequest
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-export const runtime = 'edge'; // Specify runtime for serverless environments
+// Specify runtime for serverless environments
+export const runtime = 'edge';
 
-const apiKey = process.env.GEMINI_API_KEY; // Ensure API key is set in the environment
+const apiKey = process.env.GEMINI_API_KEY;
 
 // Check if API key is available
 if (!apiKey) {
@@ -14,10 +14,11 @@ if (!apiKey) {
 // Initialize the Google Generative AI client
 const genAI = new GoogleGenerativeAI(apiKey);
 
+// Initialize models
 const models = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
 // POST function to handle requests
-export async function POST(req: NextApiRequest) {
+export async function POST(req: NextRequest) {
   try {
     // Define the prompt
     const prompt =
@@ -33,9 +34,8 @@ export async function POST(req: NextApiRequest) {
       throw new Error('Failed to retrieve generated text from response.');
     }
 
-    // // Return the output in the response
-    return NextResponse.json({output});
-
+    // Return the output in the response
+    return NextResponse.json({ output });
   } catch (error) {
     if (error instanceof Error) {
       // Google Generative AI specific error handling
@@ -44,7 +44,10 @@ export async function POST(req: NextApiRequest) {
     } else {
       // General error handling
       console.error('An unexpected error occurred:', error);
-      return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'An unexpected error occurred' },
+        { status: 500 }
+      );
     }
   }
 }
