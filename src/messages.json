@@ -13,5 +13,30 @@
       "title": "Message from MysteryGuest",
       "content": "Do you have any book recommendations?",
       "received": "1 day ago"
+    },
+    {
+      "title": "Message from TechGuru",
+      "content": "Have you tried the latest updates in JavaScript? They look promising!",
+      "received": "3 hours ago"
+    },
+    {
+      "title": "Message from CodeMaster",
+      "content": "Great job on your recent project! Your implementation was impressive.",
+      "received": "5 hours ago"
+    },
+    {
+      "title": "Message from DevFriend",
+      "content": "I was wondering if you'd like to collaborate on a new coding challenge.",
+      "received": "6 hours ago"
+    },
+    {
+      "title": "Message from KnowledgeSeeker",
+      "content": "Can you share some tips on optimizing SQL queries? I’m having some performance issues.",
+      "received": "1 day ago"
+    },
+    {
+      "title": "Message from FellowTrader",
+      "content": "I noticed you’re active in stock trading. Any tips for a beginner like me?",
+      "received": "2 days ago"
     }
 ]
